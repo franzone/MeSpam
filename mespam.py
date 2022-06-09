@@ -13,9 +13,16 @@ class MeSpamFilter:
             self.config = load(stream, Loader=Loader)['mailboxes']
 
     def run(self, mailbox='ALL'):
-        print('Running MeSpamFilter against {0} mailbox(s)'.format(mailbox))
-        for mbox in self.config:
-            print(mbox, '->', self.config[mbox])
+        if 'ALL' == mailbox or mailbox in self.config.keys():
+            print('Running MeSpamFilter against {0} mailbox(s)'.format(mailbox))
+            for mbox in self.config:
+                if 'ALL' == mailbox or mbox == mailbox:
+                    print(mbox, '->', self.config[mbox])
+        else:
+            print('Mailbox {0} Not Found'.format(mailbox))
+
+    def process_mailbox(self, mailbox):
+        print('Processing mailbox for {0}'.format(mailbox['email']))
 
 def main() -> int:
     if len(sys.argv) >= 2:
