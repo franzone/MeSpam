@@ -1,5 +1,6 @@
 from ast import Import
 import sys
+import imaplib
 from yaml import load
 try:
     from yaml import CLoader as Loader
@@ -15,14 +16,42 @@ class MeSpamFilter:
     def run(self, mailbox='ALL'):
         if 'ALL' == mailbox or mailbox in self.config.keys():
             print('Running MeSpamFilter against {0} mailbox(s)'.format(mailbox))
-            for mbox in self.config:
-                if 'ALL' == mailbox or mbox == mailbox:
-                    print(mbox, '->', self.config[mbox])
+            for key in self.config:
+                if 'ALL' == mailbox or key == mailbox:
+                    self.process_mailbox(self.config[key])
         else:
             print('Mailbox {0} Not Found'.format(mailbox))
 
     def process_mailbox(self, mailbox):
         print('Processing mailbox for {0}'.format(mailbox['email']))
+        mbox = self.open_inbox(mailbox)
+        if mbox:
+            try:
+                self.open_inbox(mailbox)
+                mbox.select()
+            except:
+                print('Error processing inbox for {0}: {1}'.format(mailbox['email'], sys.exc_info()[0]))
+            finally:
+                self.close_inbox(mbox)
+
+    def open_inbox(self, mailbox):
+        mbox = imaplib.IMAP4(mailbox['imap-host'])
+        try:
+            mbox.login(mailbox['email'], mailbox['password'])
+            return mbox
+        except imaplib.IMAP4.error as e:
+            print('Error opening mbox: ', e)
+        return None
+
+    def close_inbox(self, mbox):
+        print('Closing mbox')
+        try:
+            mbox.close()
+            mbox.logout()
+        except imaplib.IMAP4.error as e:
+            print('Error closing inbox: ', e)
+        return None
+
 
 def main() -> int:
     if len(sys.argv) >= 2:
