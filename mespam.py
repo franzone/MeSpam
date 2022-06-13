@@ -1,7 +1,8 @@
 from ast import Import
+from email.message import EmailMessage
 import sys
 import imaplib
-import email
+import email, email.message, email.policy
 import re
 import traceback
 import pprint
@@ -39,17 +40,16 @@ class MeSpamFilter:
                 for num in data[0].split():
                     try:
                         # Get the message
-                        #typ, data = mbox.fetch(num, '(RFC822)')
                         typ, data = mbox.fetch(num, '(BODY.PEEK[])')
-                        msg = email.message_from_string(data[0][1].decode('utf-8'))
+                        msg = email.message_from_bytes(data[0][1], policy=email.policy.default)
 
                         # Get JUST the email address and domain
                         match = re.search(r'([\w\.-]+)(@[\w\.-]+)', msg['From'])
                         emailAddr = match.group(0)
                         emailDomain = match.group(2)
 
-                        #print(emailAddr)
-                        print('MSG ID: {0}, FROM: {1}, SUBJECT: {2}'.format(num, emailAddr, msg['Subject']))
+                        if 'https://storage.googleapis.com' in msg.get_body().get_content():
+                            print('THIS IS JUNK! SPAM IT!')
                         counter = counter + 1
                         if counter >= 10:
                             break
