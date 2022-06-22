@@ -30,6 +30,15 @@ To run a specific configuration:
 python mespam.yml john
 ```
 
+### Running Using a Cron Job
+* First clone the repository: git clone https://github.com/franzone/MeSpam.git MeSpam
+* Second, modify MeSpam/mailboxes.yml appropriately
+* Finally, create a crontab entry to run it:
+```
+# Runs every 15 minutes
+*/15 * * * * cd $HOME/MeSpam && python3 mespam.py
+```
+
 ## Requirements
 * Python >= 3.10
 * IMAP account that allows remote authentication using **email address** and **password**
