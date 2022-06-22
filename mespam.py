@@ -34,9 +34,10 @@ class MeSpamFilter:
         if mbox:
             try:
                 self.open_inbox(mailbox)
-                mbox.select('INBOX.Filtered.SelfSpam')
+                mbox.select()
                 typ, data = mbox.search(None, 'ALL')
-                print('Found {0} emails to process'.format(len(data[0].split())))
+                totalCount = len(data[0].split())
+                print('Found {0} emails to process'.format(totalCount))
                 for num in data[0].split():
                     try:
                         # Get the message
@@ -48,15 +49,34 @@ class MeSpamFilter:
                         emailAddr = match.group(0)
                         emailDomain = match.group(2)
 
-                        if 'https://storage.googleapis.com' in msg.get_body().get_content():
-                            print('THIS IS JUNK! SPAM IT!')
-                        counter = counter + 1
-                        if counter >= 10:
-                            break
+                        if emailAddr == mailbox['email']:
+                            body = msg.get_body(('html', 'plain'))
+                            if body:
+                                if 'https://storage.googleapis.com' in body.get_content():
+
+                                    print('THIS IS JUNK! SPAM IT!')
+
+                                    msgDateTuple = email.utils.parsedate_tz(msg['Date'])
+                                    msgDateTm = email.utils.mktime_tz(msgDateTuple)
+
+                                    # Copy the message to the SPAM folder
+                                    mbox.append(mailbox['spam-folder'], '', imaplib.Time2Internaldate(msgDateTm), str(msg))
+
+                                    # Remove the message from the INBOX
+                                    self.mboxMonitor.store(num, '+FLAGS', '\\Deleted')
+                                    counter = counter + 1
+
+                                    break
                     except:
                         print('Error processing email', sys.exc_info()[0])
                         print(traceback.format_exc())
                         break
+                
+                # Expunge the INBOX
+                mbox.expunge()
+
+                print('Moved {0} of {1} emails to the SPAM folder'.format(counter, totalCount))
+
             except:
                 print('Error processing inbox for {0}: {1}'.format(mailbox['email'], sys.exc_info()[0]))
                 print(traceback.format_exc())
