@@ -66,7 +66,6 @@ class MeSpamFilter:
                                     mbox.store(num, '+FLAGS', '\\Deleted')
                                     counter = counter + 1
 
-                                    break
                     except:
                         print('Error processing email', sys.exc_info()[0])
                         print(traceback.format_exc())
