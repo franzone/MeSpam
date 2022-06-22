@@ -54,7 +54,7 @@ class MeSpamFilter:
                             if body:
                                 if 'https://storage.googleapis.com' in body.get_content():
 
-                                    print('THIS IS JUNK! SPAM IT!')
+                                    print('THIS IS JUNK! SPAM IT! - {0}'.format(msg['Subject']))
 
                                     msgDateTuple = email.utils.parsedate_tz(msg['Date'])
                                     msgDateTm = email.utils.mktime_tz(msgDateTuple)
