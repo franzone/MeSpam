@@ -69,7 +69,6 @@ class MeSpamFilter:
                     except:
                         print('Error processing email', sys.exc_info()[0])
                         print(traceback.format_exc())
-                        break
                 
                 # Expunge the INBOX
                 mbox.expunge()
