@@ -35,7 +35,7 @@ python mespam.yml john
 * IMAP account that allows remote authentication using **email address** and **password**
 
 ## Terms and Conditions
-Download and use of any content (files, scripts, images, etc.) from the repository located at https://github.com/franzone/MeSpam construes your consent to these **Terms and Conditions**. Use of this script or any related files is at your own risk. The author, Jonathan Franzone, may not be held liable for any damages, imagined or real, caused by your use of this script or related files.
+Download and use of any content (files, scripts, images, etc.) from the repository located at https://github.com/franzone/MeSpam construes your consent to these **Terms and Conditions**. Use of this script or any related files is at your own risk. The author, Jonathan Franzone, his family, friends or associates, may not be held liable for any damages, imagined or real, caused by your use of this script or related files.
 
 ## License
 [MIT License](LICENSE)
