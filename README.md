@@ -1,5 +1,5 @@
 # MeSpam
-Python script to move spam emails allegedly from "me" to the spam folder. This script uses IMAP to connect to your email. The matching algorithm is extremely specific to emails that have been flooding my inbox starting about June 2022. These emails appear to have been sent by my email address (or yours) and they contain several links to https://sotrage.googleapis.com.
+Python script to move spam emails allegedly from "me" to the spam folder. This script uses IMAP to connect to your email. The matching algorithm is extremely specific to emails that have been flooding my inbox starting about June 2022. These emails appear to have been sent by my email address (or yours) and they contain several links to https://storage.googleapis.com.
 
 ## Configuration
 Configure as many mailboxes as you need to process in the `mailboxes.yml` configuration file. The format is as follows:
