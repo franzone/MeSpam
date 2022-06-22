@@ -47,7 +47,10 @@ python mespam.yml john
 Download and use of any content (files, scripts, images, etc.) from the repository located at https://github.com/franzone/MeSpam construes your consent to these **Terms and Conditions**. Use of this script or any related files is at your own risk. The author, Jonathan Franzone, his family, friends or associates, may not be held liable for any damages, imagined or real, caused by your use of this script or related files.
 
 ## Author
-The author of this script is Jonathan Franzone (that's me!). You can find more information about him at https://franzone.blog or https://about.franzone.com.
+The author of this script is Jonathan Franzone (that's me!). You can find more information about him at:
+* https://franzone.blog
+* https://about.franzone.com
+* https://www.linkedin.com/in/jonathanfranzone/
 
 ## License
 [MIT License](LICENSE)
