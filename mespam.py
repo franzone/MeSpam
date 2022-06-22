@@ -60,10 +60,10 @@ class MeSpamFilter:
                                     msgDateTm = email.utils.mktime_tz(msgDateTuple)
 
                                     # Copy the message to the SPAM folder
-                                    mbox.append(mailbox['spam-folder'], '', imaplib.Time2Internaldate(msgDateTm), str(msg))
+                                    mbox.append(mailbox['spam-folder'], '', imaplib.Time2Internaldate(msgDateTm), str(msg).encode('utf-8'))
 
                                     # Remove the message from the INBOX
-                                    self.mboxMonitor.store(num, '+FLAGS', '\\Deleted')
+                                    mbox.store(num, '+FLAGS', '\\Deleted')
                                     counter = counter + 1
 
                                     break
