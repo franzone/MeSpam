@@ -54,7 +54,7 @@ class MeSpamFilter:
                             if body:
                                 if 'https://storage.googleapis.com' in body.get_content():
 
-                                    print('THIS IS JUNK! SPAM IT! - {0}'.format(msg['Subject']))
+                                    print('THIS IS JUNK! SPAM IT! - {0}'.format(self.strip_non_ascii(msg['Subject'])))
 
                                     msgDateTuple = email.utils.parsedate_tz(msg['Date'])
                                     msgDateTm = email.utils.mktime_tz(msgDateTuple)
@@ -99,6 +99,10 @@ class MeSpamFilter:
             print('Error closing inbox: ', e)
         return None
 
+    def strip_non_ascii(str):
+        ''' Returns the string without non ASCII characters '''
+        stripped = (c for c in str if 0 < ord(c) < 127)
+        return ''.join(stripped)
 
 def main() -> int:
     if len(sys.argv) >= 2:
