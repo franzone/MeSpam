@@ -99,7 +99,7 @@ class MeSpamFilter:
             print('Error closing inbox: ', e)
         return None
 
-    def strip_non_ascii(str):
+    def strip_non_ascii(self, str):
         ''' Returns the string without non ASCII characters '''
         stripped = (c for c in str if 0 < ord(c) < 127)
         return ''.join(stripped)
