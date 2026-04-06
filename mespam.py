@@ -1,4 +1,4 @@
-∏import sys
+import sys
 import os
 import imaplib
 import email, email.message, email.policy
