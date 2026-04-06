@@ -1,3 +1,7 @@
+patterns:
+  - from-is-self: true
+    body-contains: "https://storage.googleapis.com"
+
 mailboxes:
   john:
     email: john.doe@gmail.com

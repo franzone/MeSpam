@@ -1,4 +1,4 @@
-import sys
+∏import sys
 import os
 import imaplib
 import email, email.message, email.policy
@@ -15,7 +15,9 @@ class MeSpamFilter:
     def __init__(self):
         config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mailboxes.yml')
         with open(config_path, 'r') as stream:
-            self.config = load(stream, Loader=Loader)['mailboxes']
+            config = load(stream, Loader=Loader)
+            self.config = config['mailboxes']
+            self.global_patterns = config.get('patterns', [])
 
     def run(self, mailbox='ALL'):
         if 'ALL' == mailbox or mailbox in self.config.keys():
@@ -41,33 +43,23 @@ class MeSpamFilter:
                 spam_nums = []
                 for num in nums:
                     try:
-                        # Fetch headers first to check the From address
-                        typ, data = mbox.fetch(num, '(BODY.PEEK[HEADER])')
+                        # Fetch the full message for pattern matching
+                        _, data = mbox.fetch(num, '(BODY.PEEK[])')
                         msg = email.message_from_bytes(data[0][1], policy=email.policy.default)
 
-                        # Get JUST the email address
-                        match = re.search(r'([\w\.-]+)(@[\w\.-]+)', msg['From'])
-                        emailAddr = match.group(0)
+                        patterns = mailbox.get('patterns', self.global_patterns)
+                        if self.matches_any_pattern(msg, mailbox['email'], patterns):
 
-                        if emailAddr == mailbox['email']:
-                            # Only now fetch the full body to check content
-                            typ, data = mbox.fetch(num, '(BODY.PEEK[])')
-                            msg = email.message_from_bytes(data[0][1], policy=email.policy.default)
+                            print('THIS IS JUNK! SPAM IT! - {0}'.format(self.strip_non_ascii(msg['Subject'])))
 
-                            body = msg.get_body(('html', 'plain'))
-                            if body:
-                                if 'https://storage.googleapis.com' in body.get_content():
+                            msgDateTuple = email.utils.parsedate_tz(msg['Date'])
+                            msgDateTm = email.utils.mktime_tz(msgDateTuple)
 
-                                    print('THIS IS JUNK! SPAM IT! - {0}'.format(self.strip_non_ascii(msg['Subject'])))
+                            # Copy the message to the SPAM folder
+                            mbox.append(mailbox['spam-folder'], '', imaplib.Time2Internaldate(msgDateTm), str(msg).encode('utf-8'))
 
-                                    msgDateTuple = email.utils.parsedate_tz(msg['Date'])
-                                    msgDateTm = email.utils.mktime_tz(msgDateTuple)
-
-                                    # Copy the message to the SPAM folder
-                                    mbox.append(mailbox['spam-folder'], '', imaplib.Time2Internaldate(msgDateTm), str(msg).encode('utf-8'))
-
-                                    spam_nums.append(num)
-                                    counter = counter + 1
+                            spam_nums.append(num)
+                            counter = counter + 1
 
                     except Exception:
                         print('Error processing email', sys.exc_info()[0])
@@ -105,6 +97,53 @@ class MeSpamFilter:
         except imaplib.IMAP4.error as e:
             print('Error closing inbox: ', e)
         return None
+
+    def matches_any_pattern(self, msg, mailbox_email, patterns):
+        '''Returns True if the email matches any of the configured spam patterns'''
+        for pattern in patterns:
+            if self.matches_pattern(msg, mailbox_email, pattern):
+                return True
+        return False
+
+    def matches_pattern(self, msg, mailbox_email, pattern):
+        '''Returns True if the email matches ALL conditions in a single pattern'''
+        body_content = None
+        subject = None
+
+        for condition, value in pattern.items():
+            if condition == 'from-is-self':
+                if value:
+                    match = re.search(r'([\w\.-]+)(@[\w\.-]+)', msg['From'])
+                    if not match or match.group(0) != mailbox_email:
+                        return False
+
+            elif condition == 'body-contains':
+                if body_content is None:
+                    body = msg.get_body(('html', 'plain'))
+                    body_content = body.get_content() if body else ''
+                if value not in body_content:
+                    return False
+
+            elif condition == 'body-matches':
+                if body_content is None:
+                    body = msg.get_body(('html', 'plain'))
+                    body_content = body.get_content() if body else ''
+                if not re.search(value, body_content):
+                    return False
+
+            elif condition == 'subject-contains':
+                if subject is None:
+                    subject = msg['Subject'] or ''
+                if value not in subject:
+                    return False
+
+            elif condition == 'subject-matches':
+                if subject is None:
+                    subject = msg['Subject'] or ''
+                if not re.search(value, subject):
+                    return False
+
+        return True
 
     def strip_non_ascii(self, str):
         ''' Returns the string without non ASCII characters '''
