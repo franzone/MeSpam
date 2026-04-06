@@ -1,11 +1,9 @@
-from ast import Import
-from email.message import EmailMessage
 import sys
+import os
 import imaplib
 import email, email.message, email.policy
 import re
 import traceback
-import pprint
 from yaml import load
 try:
     from yaml import CLoader as Loader
@@ -15,7 +13,8 @@ except ImportError:
 class MeSpamFilter:
 
     def __init__(self):
-        with open('mailboxes.yml', 'r') as stream:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mailboxes.yml')
+        with open(config_path, 'r') as stream:
             self.config = load(stream, Loader=Loader)['mailboxes']
 
     def run(self, mailbox='ALL'):
@@ -33,23 +32,28 @@ class MeSpamFilter:
         counter = 0
         if mbox:
             try:
-                self.open_inbox(mailbox)
                 mbox.select()
-                typ, data = mbox.search(None, 'ALL')
-                totalCount = len(data[0].split())
+                typ, data = mbox.search(None, 'FROM', mailbox['email'])
+                nums = data[0].split()
+                totalCount = len(nums)
                 print('Found {0} emails to process'.format(totalCount))
-                for num in data[0].split():
+
+                spam_nums = []
+                for num in nums:
                     try:
-                        # Get the message
-                        typ, data = mbox.fetch(num, '(BODY.PEEK[])')
+                        # Fetch headers first to check the From address
+                        typ, data = mbox.fetch(num, '(BODY.PEEK[HEADER])')
                         msg = email.message_from_bytes(data[0][1], policy=email.policy.default)
 
-                        # Get JUST the email address and domain
+                        # Get JUST the email address
                         match = re.search(r'([\w\.-]+)(@[\w\.-]+)', msg['From'])
                         emailAddr = match.group(0)
-                        emailDomain = match.group(2)
 
                         if emailAddr == mailbox['email']:
+                            # Only now fetch the full body to check content
+                            typ, data = mbox.fetch(num, '(BODY.PEEK[])')
+                            msg = email.message_from_bytes(data[0][1], policy=email.policy.default)
+
                             body = msg.get_body(('html', 'plain'))
                             if body:
                                 if 'https://storage.googleapis.com' in body.get_content():
@@ -62,27 +66,30 @@ class MeSpamFilter:
                                     # Copy the message to the SPAM folder
                                     mbox.append(mailbox['spam-folder'], '', imaplib.Time2Internaldate(msgDateTm), str(msg).encode('utf-8'))
 
-                                    # Remove the message from the INBOX
-                                    mbox.store(num, '+FLAGS', '\\Deleted')
+                                    spam_nums.append(num)
                                     counter = counter + 1
 
-                    except:
+                    except Exception:
                         print('Error processing email', sys.exc_info()[0])
                         print(traceback.format_exc())
-                
+
+                # Batch-delete all spam messages at once
+                if spam_nums:
+                    mbox.store(b','.join(spam_nums), '+FLAGS', '\\Deleted')
+
                 # Expunge the INBOX
                 mbox.expunge()
 
                 print('Moved {0} of {1} emails to the SPAM folder'.format(counter, totalCount))
 
-            except:
+            except Exception:
                 print('Error processing inbox for {0}: {1}'.format(mailbox['email'], sys.exc_info()[0]))
                 print(traceback.format_exc())
             finally:
                 self.close_inbox(mbox)
 
     def open_inbox(self, mailbox):
-        mbox = imaplib.IMAP4(mailbox['imap-host'])
+        mbox = imaplib.IMAP4_SSL(mailbox['imap-host'])
         try:
             mbox.login(mailbox['email'], mailbox['password'])
             return mbox
