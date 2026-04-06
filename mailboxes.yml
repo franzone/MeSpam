@@ -1,6 +1,10 @@
 patterns:
   - from-is-self: true
     body-contains: "https://storage.googleapis.com"
+  - subject-contains: "I RECORDED YOU!"
+  - subject-contains: "YOUR DEVICE AND EMAIL HAS BEEN COMPROMISED CHECK THIS MESSAGE NOW!"
+  - subject-contains: ">>> Your account is hacked. Your data is stolen. Learn how to regain access."
+  - subject-contains: "YOU BETTER READ THIS!"
 
 mailboxes:
   john:
