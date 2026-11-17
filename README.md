@@ -5,6 +5,11 @@ Python script to move spam emails allegedly from "me" to the spam folder. This s
 Configure as many mailboxes as you need to process in the `mailboxes.yml` configuration file. The format is as follows:
 
 ```
+patterns:
+  - from-is-self: true
+    body-contains: "https://storage.googleapis.com"
+  - subject-contains: "I RECORDED YOU!"
+
 mailboxes:
   john:
     email: john.doe@gmail.com
@@ -17,17 +22,19 @@ mailboxes:
     imap-host: imap.sample.com
     spam-folder: INBOX.Spam
 ```
+A message is moved to the spam folder when it matches **all** conditions of **any** pattern. Available conditions are `from-is-self`, `body-contains`, `body-matches` (regex), `subject-contains` and `subject-matches` (regex). A mailbox may define its own `patterns` list to override the global one. See `mailboxes.yml.example`.
+
 \* *Obviously you will need to modify the configuration in `mailboxes.yml` to meet your personal needs (i.e., the configuration of your IMAP mailboxes).*
 
 ## Running the Script
 To run all configurations:
 ```
-python mespam.yml
+python3 mespam.py
 ```
 
 To run a specific configuration:
 ```
-python mespam.yml john
+python3 mespam.py john
 ```
 
 ### Running Using a Cron Job
