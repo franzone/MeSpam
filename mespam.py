@@ -158,6 +158,8 @@ class MeSpamFilter:
         for condition, value in pattern.items():
             if condition == 'from-is-self' and value:
                 criteria += ['FROM', self.quote(mailbox_email)]
+            elif condition == 'sender-auth-fails' and value:
+                criteria += ['HEADER', 'Authentication-Results', '"fail"']
             elif condition in keys and isinstance(value, str) and value.isascii() \
                     and value.strip() and '\r' not in value and '\n' not in value:
                 criteria += [keys[condition], self.quote(value)]
@@ -181,6 +183,10 @@ class MeSpamFilter:
                     sender = email.utils.parseaddr(self.header(msg, 'From'))[1]
                     if sender.lower() != mailbox_email.lower():
                         return False
+
+            elif condition == 'sender-auth-fails':
+                if value and not self.sender_auth_fails(msg):
+                    return False
 
             elif condition in ('body-contains', 'body-matches'):
                 if body_content is None:
@@ -206,6 +212,22 @@ class MeSpamFilter:
                 return False
 
         return True
+
+    def sender_auth_fails(self, msg):
+        '''Returns True if the receiving server recorded that the sender was forged.
+
+        Only the topmost Authentication-Results header is trusted: it is the one
+        added by our own inbound server, anything below it may be attacker-supplied.
+        A message with no such header (e.g. one saved straight into the mailbox)
+        is never treated as a failure.
+        '''
+        for key, val in msg.raw_items():
+            if key.lower() == 'authentication-results':
+                results = dict(re.findall(r'\b(spf|dkim|dmarc)\s*=\s*(\w+)', str(val).lower()))
+                if results.get('dkim') == 'pass' or results.get('dmarc') == 'pass':
+                    return False
+                return results.get('spf') in ('fail', 'softfail') or results.get('dmarc') == 'fail'
+        return False
 
     def header(self, msg, name):
         '''Returns a header as text, tolerating missing or malformed headers'''

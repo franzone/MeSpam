@@ -22,7 +22,7 @@ mailboxes:
     imap-host: imap.sample.com
     spam-folder: INBOX.Spam
 ```
-A message is moved to the spam folder when it matches **all** conditions of **any** pattern. Available conditions are `from-is-self`, `body-contains`, `body-matches` (regex), `subject-contains` and `subject-matches` (regex). A mailbox may define its own `patterns` list to override the global one. See `mailboxes.yml.example`.
+A message is moved to the spam folder when it matches **all** conditions of **any** pattern. Available conditions are `from-is-self`, `sender-auth-fails` (the server's `Authentication-Results` header reports an SPF/DMARC failure and no DKIM pass), `body-contains`, `body-matches` (regex), `subject-contains` and `subject-matches` (regex). A mailbox may define its own `patterns` list to override the global one. See `mailboxes.yml.example`.
 
 \* *Obviously you will need to modify the configuration in `mailboxes.yml` to meet your personal needs (i.e., the configuration of your IMAP mailboxes).*
 

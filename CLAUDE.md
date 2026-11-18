@@ -32,4 +32,4 @@ python3 mespam.py john
 - The script connects with `imaplib.IMAP4_SSL`
 - Candidates are found with server-side IMAP `SEARCH` built from each pattern, verified locally, then moved with `UID MOVE` (falling back to `COPY` + `UID EXPUNGE`); messages are never re-uploaded
 - `mailboxes.yml` contains credentials — never commit real passwords
-- Spam detection is driven by `patterns` in `mailboxes.yml` (global, or per mailbox). A message is spam if it matches ALL conditions of ANY pattern. Conditions: `from-is-self`, `body-contains`, `body-matches`, `subject-contains`, `subject-matches`
+- Spam detection is driven by `patterns` in `mailboxes.yml` (global, or per mailbox). A message is spam if it matches ALL conditions of ANY pattern. Conditions: `from-is-self`, `sender-auth-fails`, `body-contains`, `body-matches`, `subject-contains`, `subject-matches`

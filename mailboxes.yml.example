@@ -1,4 +1,7 @@
 patterns:
+  # Mail claiming to be from you that your mail server says was not sent by you
+  - from-is-self: true
+    sender-auth-fails: true
   - from-is-self: true
     body-contains: "https://storage.googleapis.com"
   - subject-contains: "I RECORDED YOU!"

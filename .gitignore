@@ -130,3 +130,6 @@ dmypy.json
 
 # Mailbox config with real credentials
 mailboxes.yml
+
+# Saved sample emails
+*.eml
